@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas</title>
+
+    <link rel="stylesheet" href="./src/css/style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="container">
+
+        <h1>Lista de Tarefas</h1>
+
+        <div class="nova-tarefa">
+            <input type="text" name="tarefa" id="tarefa" placeholder="Adicione uma nova tarefa">
+            <button onclick="adicionarTarefa()">
+                <i class='bx bx-plus'></i>
+            </button>
+        </div>
+
+        <div class="lista"></div>
+
+    </div>
+
+    <div class="modal-container">
+        <div class="modal">
+            <header>
+                <h1>Editar tarefa</h1>
+                <button class="fechar">
+                    <i class='bx bx-x'></i>
+                </button>
+            </header>
+            <input type="text" name="modal-text" id="modal-text" value="0" autofocus="true">
+            <footer>
+                <button class="confirmar">Confirmar</button>
+                <button class="cancelar">Cancelar</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="./src/js/script.js"></script>
+</body>
+</html>

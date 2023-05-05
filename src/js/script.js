@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', e => {
 //Criar tarefa
 btnCriarTarefa.addEventListener('click', (e) => {
     criarTarefa()
+    novaTarefa.value = ''
 })
 
 document.addEventListener('keypress', (e) => {

@@ -1,180 +1,280 @@
-let inputTarefa = document.querySelector('#tarefa')
-let xModal = document.querySelector('.bx.bx-x')
-let cancelarModal = document.querySelector('.cancelar')
+const novaTarefa = document.getElementById('txt-nova-tarefa')
+const btnCriarTarefa = document.querySelector('.adicionar')
+const lista = document.querySelector('.lista')
+const containerModal = document.querySelector('.container-modal')
+const btnModalCanc = containerModal.querySelector('.cancelar')
+const btnModalConfir = containerModal.querySelector('.confirmar')
 var cont = 0
 
-inputTarefa.addEventListener('keypress', (e) => {
-    if(e.keyCode == 13) {
-        adicionarTarefa()
+//Carregar a lista quando o documento foi carregado 
+document.addEventListener('DOMContentLoaded', e => {
+    listarTarefas()
+    adicionarOuvintesBotoes()
+})
+
+//Criar tarefa
+btnCriarTarefa.addEventListener('click', (e) => {
+    criarTarefa()
+})
+
+document.addEventListener('keypress', (e) => {
+    if(e.key == 'Enter'){
+        criarTarefa()
+        novaTarefa.value = ''
+    } 
+})
+
+atualizarMargin()
+
+function atualizarMargin() {
+    let tarefas = lista.querySelectorAll('.tarefa')
+
+    if (lista.scrollHeight > lista.clientHeight) {
+
+        tarefas.forEach((tarefa) => {
+            tarefa.style.width = '99%'
+            tarefa.style.marginRight = '1%'
+        })
+
+    } else {
+
+        tarefas.forEach((tarefa) => {
+            tarefa.style.width = '100%'
+            tarefa.style.marginRight = '0%'
+        })
+
     }
-})
+}
 
-xModal.addEventListener('click', () => {
-    fecharModal()
-})
+function listarTarefas () {
+    try {
+        if(localStorage.getItem('lista')){
+            let response = JSON.parse(localStorage.getItem('lista'))
 
-cancelarModal.addEventListener('click', () => {
-    fecharModal()
-})
+            response.map(tarefa => {
+                criarEstruturaTarefa(tarefa.tarefaId, tarefa.nomeTarefa, tarefa.concluido)
 
-function adicionarTarefa() {
-    let nome = document.querySelector('#tarefa').value
-    let tarefa = document.querySelector('.lista')
-
-    if(nome.length > 0){
-        let divAvo = document.createElement('div')
-        divAvo.classList.add('item-tarefa')
-        divAvo.id = `div-${cont}`
-
-            let span = document.createElement('span')
-            span.classList.add('txt-tarefa')
-            span.innerHTML = nome
-            divAvo.appendChild(span)
-
-            let divBotoes = document.createElement('div')
-            divBotoes.classList.add('botoes')
-            divAvo.appendChild(divBotoes)
-
-                let botaoFinalizar = document.createElement('button')
-                botaoFinalizar.classList.add('finalizado')
-                divBotoes.appendChild(botaoFinalizar)
-                botaoFinalizar.addEventListener('click', () => {
-                    completarTarefa(divAvo.id)
-                })
-
-                    let iconCheck = document.createElement('i')
-                    iconCheck.classList.add('bx')
-                    iconCheck.classList.add('bx-check')
-                    botaoFinalizar.appendChild(iconCheck)
-
-                let botaoEditar = document.createElement('button')
-                botaoEditar.classList.add('editar')
-                divBotoes.appendChild(botaoEditar)
-                botaoEditar.addEventListener('click', () => {
-                    editarTarefa(divAvo.id)
-                })
-
-                    let iconPencil = document.createElement('i')
-                    iconPencil.classList.add('bx')
-                    iconPencil.classList.add('bx-pencil')
-                    botaoEditar.appendChild(iconPencil)
-                
-                let botaoApagar = document.createElement('button')
-                botaoApagar.classList.add('apagar')
-                divBotoes.appendChild(botaoApagar)
-                botaoApagar.addEventListener('click', () => {
-                    apagarTarefa(divAvo.id)
-                })
-
-                    let iconTrash = document.createElement('i')
-                    iconTrash.classList.add('bx')
-                    iconTrash.classList.add('bxs-trash-alt')
-                    botaoApagar.appendChild(iconTrash)
-
-            let divCompleto = document.createElement('div')
-            divCompleto.classList.add('completo')
-            divCompleto.id = 'comp-' + cont
-            divAvo.appendChild(divCompleto)
-
-        tarefa.appendChild(divAvo)
-        inputTarefa.value = ''
-
-        cont++
-    }
-
-    function completarTarefa(event) {
-        let divA = document.getElementById(event)
-        let botaoFinal = divA.querySelector('.finalizado')
-        let iconeCheck = botaoFinal.querySelector(`.bx`)
-        let botaoEditar = divA.querySelector('.editar')
-        let botaoApagar = divA.querySelector('.apagar')
-        let divComp = divA.querySelector(`.completo`)
-        let nClasses = divComp.classList.length
-        
-        if (nClasses == 1) {
-
-            iconeCheck.classList.remove('bx-check')
-            iconeCheck.classList.add('bx-check-double')
-            botaoEditar.style.display = 'none'
-            botaoApagar.classList.add('ativo')
-            botaoFinal.classList.add('ativo')
-            divComp.classList.add('ativo')
-        
+                if(tarefa.tarefaId > cont) {
+                    cont = tarefa.tarefaId
+                }
+            })
         } else {
-            
-            iconeCheck.classList.remove('bx-check-double')
-            iconeCheck.classList.add('bx-check')
-            botaoEditar.style.display = 'flex'
-            botaoApagar.classList.remove('ativo')
-            botaoFinal.classList.remove('ativo')
-            divComp.classList.remove('ativo')
-            
+            cont = 0
+        }
+    } catch (error) {
+        throw error
+    }
+}
+
+function adicionarOuvintesBotoes () {
+    let botoes = document.querySelectorAll('.botao')
+
+    botoes.forEach(botao => {
+        if(botao.classList.contains('apagar')){
+            botao.addEventListener('click', apagarTarefa)
+        } else if(botao.classList.contains('concluir')){
+            botao.addEventListener('click', concluirTarefa)
+        } else if(botao.classList.contains('editar')){
+            botao.addEventListener('click', editarTarefa)
+        }
+    })
+}
+
+function criarTarefa () {
+    let tamanho = novaTarefa.value.trim()
+
+    if(tamanho.length > 0){
+        try {
+            let novoDado = {
+                tarefaId: 'div-'+cont,
+                nomeTarefa: novaTarefa.value,
+                concluido: false
+            }
+    
+            if(localStorage.getItem('lista')){
+                let response = JSON.parse(localStorage.getItem('lista'))
+                response.push(novoDado)
+    
+                localStorage.setItem('lista', JSON.stringify(response))
+            } else{
+                let novaLista = []
+    
+                novaLista.push(novoDado)
+    
+                localStorage.setItem('lista', JSON.stringify(novaLista))
+            }
+    
+            criarEstruturaTarefa(novoDado.tarefaId, novoDado.nomeTarefa, novoDado.concluido)
+        } catch (error) {
+            throw error
         }
     }
 }
 
-function editarTarefa(event) {
-    let div = document.getElementById(event)
-    let nomeTarefa = div.querySelector('.txt-tarefa').innerHTML
+function criarEstruturaTarefa(id, nome, conclusao) {
+    let tarefa = document.createElement('div')
+    let nmTarefa = document.createElement('p')
+    let botoes = document.createElement('div')
+    let btnConcluir = document.createElement('button')
+    let btnEditar = document.createElement('button')
+    let btnApagar = document.createElement('button')
+    let iconConcluir = document.createElement('i')
+    let iconEditar = document.createElement('i')
+    let iconApagar = document.createElement('i')
+    let concluido = document.createElement('div')
+    let pConcluido = document.createElement('p')
+
+    tarefa.appendChild(nmTarefa)
+    tarefa.appendChild(botoes)
+    tarefa.appendChild(concluido)
+    botoes.appendChild(btnConcluir)
+    botoes.appendChild(btnEditar)
+    botoes.appendChild(btnApagar)
+    btnConcluir.appendChild(iconConcluir)
+    btnEditar.appendChild(iconEditar)
+    btnApagar.appendChild(iconApagar)
+    concluido.appendChild(pConcluido)
     
-    abrirModal(nomeTarefa, event)
-}
+    tarefa.classList.add('tarefa')
+    nmTarefa.classList.add('nome-tarefa')
+    botoes.classList.add('container-botoes')
+    btnConcluir.classList.add('botao')
+    btnConcluir.classList.add('concluir')
+    btnEditar.classList.add('botao')
+    btnEditar.classList.add('editar')
+    btnApagar.classList.add('botao')
+    btnApagar.classList.add('apagar')
+    iconConcluir.classList.add('bx')
+    iconEditar.classList.add('bx')
+    iconEditar.classList.add('bx-pencil')
+    iconApagar.classList.add('bx')
+    iconApagar.classList.add('bx-trash')
+    concluido.classList.add('concluido')
+    pConcluido.classList.add('palavra-concluido')
 
-function abrirModal (n, dID) {
-    let modalContainer = document.querySelector('.modal-container')
-    let inputModal = document.getElementById('modal-text')
-    let btnConfirmar = modalContainer.querySelector('.confirmar')
-
-    inputModal.value = n
-    modalContainer.style.display = 'flex'
-
-    inputModal.addEventListener('keydown', (e) => {
-        if(e.key == 'Enter') {
-            let div = document.querySelector('#' + dID)
-            let nomeTarefa = div.querySelector('.txt-tarefa')
-
-            nomeTarefa.innerHTML = inputModal.value
-
-            fecharModal()
-            div = null
-            nomeTarefa = null
-
-            modalContainer = null
-            inputModal = null
-        }
-    })
-
-    btnConfirmar.addEventListener('click', () => {        
-        let div = document.querySelector('#' + dID)
-        let nomeTarefa = div.querySelector('.txt-tarefa')
-
-        nomeTarefa.innerHTML = inputModal.value
-
-        fecharModal()
-
-        div = null
-        nomeTarefa = null
-
-        modalContainer = null
-        inputModal = null
-    })
-
-}
-
-function fecharModal () {
-    let modalContainer = document.querySelector('.modal-container')
-
-    modalContainer.style.display = 'none'
-}
-
-function apagarTarefa(event) {
-    let confirmacao = confirm('Você tem certeza que deseja excluir essa tarefa?')
+    if (conclusao == true) {
+        concluido.classList.add('ativo')
+        iconConcluir.classList.add('bx-check-double')
+        btnEditar.style.display = 'none'
+    } else {
+        iconConcluir.classList.add('bx-check')
+    }
     
-    if (confirmacao == true) {
+    tarefa.id = id
+
+    nmTarefa.innerText = nome
+
+    lista.appendChild(tarefa)
+    cont++
+    atualizarMargin()
+    adicionarOuvintesBotoes()
+}
+
+function apagarTarefa(e) {
+    let botaoClicado = e.currentTarget
+    let avo = botaoClicado.parentNode.parentNode
+    let id = avo.id
+
+    try {
         let lista = document.querySelector('.lista')
-        let divAvo = document.getElementById(event)
+        let tarefa = document.querySelector(`#${id}`)
+        let listaJson = JSON.parse(localStorage.getItem('lista'))
+        let indexTarefa = listaJson.findIndex(tar => tar.tarefaId == id)
 
-        lista.removeChild(divAvo)
-        alert('Tarefa excluída com sucesso')
+        try {
+            if(indexTarefa !== -1) {
+                listaJson.splice(indexTarefa, 1)
+                lista.removeChild(tarefa)
+                localStorage.setItem('lista', JSON.stringify(listaJson))
+            }
+        } catch (e) {
+            throw e
+        }
+    } catch (error) {
+        alert('Erro ao excluir a tarefa. Erro: ' + error)
     }
 }
+
+function concluirTarefa(e) {
+    let botaoClicado = e.currentTarget
+    let avo = botaoClicado.parentNode.parentNode
+    let id = avo.id
+    let concluido = avo.querySelector('.concluido')
+    let containerBotoes = avo.querySelector('.container-botoes')
+    let iconCheck = botaoClicado.querySelector('.bx')
+    let iconEditar = avo.querySelector('.editar')
+    let lista = JSON.parse(localStorage.getItem('lista'))
+    let index = lista.findIndex(tarefa => tarefa.tarefaId == id)
+
+    try {
+        if(index !== -1 && lista[index].concluido == false){
+            concluido.classList.add('ativo')
+            iconCheck.classList.remove('bx-check')
+            iconCheck.classList.add('bx-check-double')
+            iconEditar.style.display = 'none'
+            containerBotoes.classList.toggle('.concluido')
+            lista[index].concluido = true
+
+            localStorage.setItem('lista', JSON.stringify(lista))
+        } else if(index !== -1 && lista[index].concluido == true){
+            concluido.classList.remove('ativo')
+            iconCheck.classList.add('bx-check')
+            iconCheck.classList.remove('bx-check-double')
+            containerBotoes.classList.toggle('.concluido')
+            iconEditar.style.display = 'flex'
+            lista[index].concluido = false
+
+            localStorage.setItem('lista', JSON.stringify(lista))
+        }
+    } catch (error) {
+        throw error
+    }
+}
+
+function editarTarefa (e) {
+    //Obtendo a tarefa e o id
+    let botaoClicado = e.currentTarget
+    let tarefa = botaoClicado.parentNode.parentNode
+    let id = tarefa.id
+    let pNomeTarefa = tarefa.querySelector('.nome-tarefa')
+
+    //Variáveis do modal
+    let modal = document.querySelector('.container-modal')
+    let campoTexto = document.getElementById('txt-modal')
+    let botaoCancelar = modal.querySelector('.cancelar')
+    let botaoConfirmar = modal.querySelector('.confirmar')
+
+    //lista
+    let lista = JSON.parse(localStorage.getItem('lista'))
+    let index = lista.findIndex(tarefa => tarefa.tarefaId == id)
+
+    modal.classList.toggle('abrir')
+    campoTexto.value = pNomeTarefa.textContent
+
+    botaoConfirmar.addEventListener('click', () => {
+        containerModal.classList.remove('abrir')
+
+        if (campoTexto.value.trim() != pNomeTarefa.textContent) {
+            try {
+                pNomeTarefa.textContent = campoTexto.value.trim()
+                lista[index].nomeTarefa = campoTexto.value.trim()
+
+                localStorage.setItem('lista', JSON.stringify(lista))
+            } catch (error) {
+                throw error
+            }
+        } 
+    })
+
+    botaoCancelar.addEventListener('click', () => {
+        containerModal.classList.remove('abrir')
+    })
+}
+
+// Caso queira resetar a lista com uma tecla
+// function limparLista() {
+//     localStorage.removeItem('lista')
+//     cont = 0
+//     alert('Lista limpa')
+//     location.reload()
+// }

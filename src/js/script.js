@@ -1,9 +1,6 @@
 const novaTarefa = document.getElementById('txt-nova-tarefa')
 const btnCriarTarefa = document.querySelector('.adicionar')
 const lista = document.querySelector('.lista')
-const containerModal = document.querySelector('.container-modal')
-const btnModalCanc = containerModal.querySelector('.cancelar')
-const btnModalConfir = containerModal.querySelector('.confirmar')
 var cont = 0
 
 //Carregar a lista quando o documento foi carregado 
@@ -76,7 +73,7 @@ function adicionarOuvintesBotoes () {
         } else if(botao.classList.contains('concluir')){
             botao.addEventListener('click', concluirTarefa)
         } else if(botao.classList.contains('editar')){
-            botao.addEventListener('click', editarTarefa)
+            botao.addEventListener('click', abrirModalEditarTarefa)
         }
     })
 }
@@ -232,44 +229,79 @@ function concluirTarefa(e) {
     }
 }
 
-function editarTarefa (e) {
-    //Obtendo a tarefa e o id
-    let botaoClicado = e.currentTarget
-    let tarefa = botaoClicado.parentNode.parentNode
-    let id = tarefa.id
-    let pNomeTarefa = tarefa.querySelector('.nome-tarefa')
+//Modal
+const containerModal = document.querySelector('.container-modal')
+const modal = document.querySelector('.modal')
+const campoTexto = document.getElementById('txt-modal')
+const botaoCancelar = modal.querySelector('.cancelar')
+const botaoConfirmar = modal.querySelector('.confirmar')
 
-    //Variáveis do modal
-    let modal = document.querySelector('.container-modal')
-    let campoTexto = document.getElementById('txt-modal')
-    let botaoCancelar = modal.querySelector('.cancelar')
-    let botaoConfirmar = modal.querySelector('.confirmar')
+botaoConfirmar.addEventListener('click', () => {
+    containerModal.classList.add('fechar')
+    modal.classList.add('fechado')
+
+    setTimeout(() => {
+        containerModal.classList.remove('abrir')
+        containerModal.classList.remove('fechar')
+        modal.style.display = 'none'
+        modal.classList.remove('fechado')
+    }, 400);
+
+    //Procura a tarefa de acordo com o valor em data-div
+    try {
+        const idTarefa = campoTexto.dataset.div
+        const tarefa = document.getElementById(idTarefa)
+        const pNomeTarefa = tarefa.querySelector('.nome-tarefa')
+
+        fecharModalEditarTarefa(idTarefa, pNomeTarefa)
+    } catch (error) {
+        console.log('Falha em atualizar a tarefa. Erro: '+ error);
+    }
+})
+
+botaoCancelar.addEventListener('click', () => {
+    containerModal.classList.add('fechar')
+    modal.classList.add('fechado')
+
+    setTimeout(() => {
+        containerModal.classList.remove('abrir')
+        containerModal.classList.remove('fechar')
+        modal.style.display = 'none'
+        modal.classList.remove('fechado')
+    }, 400);
+})
+
+function abrirModalEditarTarefa(e) {
+    //Obtendo a tarefa e o id
+    const botaoClicado = e.currentTarget
+    const tarefa = botaoClicado.parentNode.parentNode
+    const id = tarefa.id
+    const pNomeTarefa = tarefa.querySelector('.nome-tarefa')
+
+    //Animações Modal
+    containerModal.classList.add('abrir')
+    modal.style.display = 'flex'
+
+    campoTexto.value = pNomeTarefa.textContent
+    campoTexto.dataset.div = id
+}
+
+function fecharModalEditarTarefa (id, nomeTarefa) {
 
     //lista
-    let lista = JSON.parse(localStorage.getItem('lista'))
-    let index = lista.findIndex(tarefa => tarefa.tarefaId == id)
+    const lista = JSON.parse(localStorage.getItem('lista'))
+    const index = lista.findIndex(tarefa => tarefa.tarefaId == id)
 
-    modal.classList.toggle('abrir')
-    campoTexto.value = pNomeTarefa.textContent
+    if (campoTexto.value.trim() != nomeTarefa.textContent) {
+        try {
+            nomeTarefa.textContent = campoTexto.value.trim()
+            lista[index].nomeTarefa = campoTexto.value.trim()
 
-    botaoConfirmar.addEventListener('click', () => {
-        containerModal.classList.remove('abrir')
-
-        if (campoTexto.value.trim() != pNomeTarefa.textContent) {
-            try {
-                pNomeTarefa.textContent = campoTexto.value.trim()
-                lista[index].nomeTarefa = campoTexto.value.trim()
-
-                localStorage.setItem('lista', JSON.stringify(lista))
-            } catch (error) {
-                throw error
-            }
-        } 
-    })
-
-    botaoCancelar.addEventListener('click', () => {
-        containerModal.classList.remove('abrir')
-    })
+            localStorage.setItem('lista', JSON.stringify(lista))
+        } catch (error) {
+            throw error
+        }
+    }
 }
 
 // Caso queira resetar a lista com uma tecla

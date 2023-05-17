@@ -244,8 +244,12 @@ body {
     animation: escurecerTela .5s;
 }
 
-.abrir {
+.container-modal.abrir {
     display: flex;
+}
+
+.container-modal.fechar {
+    animation: clarearTela .5s;
 }
 
 .modal {
@@ -259,6 +263,10 @@ body {
     justify-content: space-between;
     align-items: center;
     animation: aparecerModal .8s;
+}
+
+.modal.fechado {
+    animation: desaparecerModal .5s;
 }
 
 .header-modal {
@@ -357,6 +365,28 @@ body {
     }
 }
 
+@keyframes desaparecerModal {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-300px);
+    }
+}
+
+@keyframes clarearTela {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 @media Screen and (max-width: 600px) {
     .container {
         padding: 15px;
@@ -381,6 +411,10 @@ body {
         display: flex;
         justify-content: space-evenly;
         gap: 0;
+    }
+
+    .botoes-modal {
+        width: 100%;
     }
 }
 
